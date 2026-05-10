@@ -11,7 +11,6 @@ from __future__ import annotations
 from datetime import date
 
 from sqlalchemy import select
-from sqlalchemy.dialects.postgresql import insert as pg_insert
 
 from app.database import SessionLocal
 from app.models import Price, Security
@@ -33,7 +32,7 @@ def _fetch_close(symbol: str) -> float | None:
 
 
 async def refresh_prices(as_of: date | None = None) -> int:
-    """Returns count of prices written."""
+    """Returns count of prices written. Cross-DB: select-then-insert/update."""
     today = as_of or date.today()
     written = 0
 
@@ -45,18 +44,19 @@ async def refresh_prices(as_of: date | None = None) -> int:
             close = _fetch_close(sec.symbol)
             if close is None:
                 continue
-            stmt = pg_insert(Price).values(
-                security_id=sec.id,
-                as_of=today,
-                close=close,
-                currency=sec.currency,
-                source="yahoo",
-            )
-            stmt = stmt.on_conflict_do_update(
-                index_elements=["security_id", "as_of"],
-                set_={"close": close, "source": "yahoo"},
-            )
-            await db.execute(stmt)
+
+            existing = (await db.execute(
+                select(Price).where(Price.security_id == sec.id, Price.as_of == today)
+            )).scalars().first()
+
+            if existing:
+                existing.close = close
+                existing.source = "yahoo"
+            else:
+                db.add(Price(
+                    security_id=sec.id, as_of=today, close=close,
+                    currency=sec.currency, source="yahoo",
+                ))
             written += 1
 
         await db.commit()

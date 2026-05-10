@@ -26,3 +26,8 @@ dist/
 # Build artifacts
 joblib_models/
 *.pkl
+
+# Local dev databases
+*.db
+*.sqlite
+*.sqlite3

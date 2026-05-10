@@ -6,7 +6,7 @@ from decimal import Decimal
 from typing import Any
 
 from sqlalchemy import DateTime, ForeignKey, Integer, Numeric, String, func
-from sqlalchemy.dialects.postgresql import JSONB, UUID
+from sqlalchemy import JSON as JSONB, Uuid as UUID
 from sqlalchemy.orm import Mapped, mapped_column
 
 from app.database import Base

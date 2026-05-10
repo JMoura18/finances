@@ -52,11 +52,15 @@ if (FIREBASE_CONFIG) {
   ;(async () => {
     try {
       const cfg = JSON.parse(FIREBASE_CONFIG)
-      const { initializeApp } = await import('firebase/app')
-      const { getAuth, onAuthStateChanged } = await import('firebase/auth')
-      const app = initializeApp(cfg)
-      const auth = getAuth(app)
-      onAuthStateChanged(auth, async (fbUser) => {
+      // String variables prevent Vite from statically resolving these
+      // at build time when firebase isn't installed in dev mode.
+      const appPkg = 'firebase/app'
+      const authPkg = 'firebase/auth'
+      const fbApp: any = await import(/* @vite-ignore */ appPkg)
+      const fbAuth: any = await import(/* @vite-ignore */ authPkg)
+      const app = fbApp.initializeApp(cfg)
+      const auth = fbAuth.getAuth(app)
+      fbAuth.onAuthStateChanged(auth, async (fbUser: any) => {
         if (!fbUser) {
           currentUser = null
         } else {
