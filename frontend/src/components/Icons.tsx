@@ -43,3 +43,18 @@ export const SparkleIcon = (p: P) => (
 export const ArrowUpRight = (p: P) => (
   <svg {...base} {...p}><path d="M7 17 17 7" /><path d="M8 7h9v9" /></svg>
 )
+export const BellIcon = (p: P) => (
+  <svg {...base} {...p}><path d="M6 8a6 6 0 0 1 12 0c0 7 3 8 3 8H3s3-1 3-8" /><path d="M10 21a2 2 0 0 0 4 0" /></svg>
+)
+export const CalibrationIcon = (p: P) => (
+  <svg {...base} {...p}><circle cx="12" cy="12" r="9" /><path d="M12 7v5l3 2" /><path d="M3 12a9 9 0 0 1 9-9" stroke="currentColor" strokeOpacity="0.5" /></svg>
+)
+export const NewsIcon = (p: P) => (
+  <svg {...base} {...p}><rect x="3" y="5" width="18" height="14" rx="2" /><path d="M7 9h7" /><path d="M7 13h7" /><path d="M7 17h4" /></svg>
+)
+export const SearchIcon = (p: P) => (
+  <svg {...base} {...p}><circle cx="11" cy="11" r="7" /><path d="M21 21l-4.5-4.5" /></svg>
+)
+export const LinkIcon = (p: P) => (
+  <svg {...base} {...p}><path d="M10 14a5 5 0 0 0 7 0l3-3a5 5 0 0 0-7-7l-1 1" /><path d="M14 10a5 5 0 0 0-7 0l-3 3a5 5 0 0 0 7 7l1-1" /></svg>
+)

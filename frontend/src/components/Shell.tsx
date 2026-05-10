@@ -1,5 +1,6 @@
 import { ReactNode } from 'react'
 import { NavLink } from 'react-router-dom'
+import { useEffect, useState } from 'react'
 import {
   HomeIcon,
   WalletIcon,
@@ -9,7 +10,10 @@ import {
   ShieldIcon,
   TaxIcon,
   ScaleIcon,
+  BellIcon,
+  CalibrationIcon,
 } from './Icons'
+import { api } from '../lib/api'
 
 const NAV = [
   { to: '/dashboard', label: 'Dashboard', icon: HomeIcon },
@@ -18,13 +22,30 @@ const NAV = [
   { to: '/transactions', label: 'Activity', icon: ListIcon },
   { to: '/forecast', label: 'Forecast', icon: TrendingIcon },
   { to: '/risk', label: 'Risk', icon: ShieldIcon },
+  { to: '/alerts', label: 'Alerts', icon: BellIcon },
   { to: '/tax', label: 'Tax', icon: TaxIcon },
   { to: '/rebalance', label: 'Rebalance', icon: ScaleIcon },
+  { to: '/calibration', label: 'Calibration', icon: CalibrationIcon },
 ]
 
 const PRIMARY_MOBILE = ['/dashboard', '/accounts', '/holdings', '/forecast', '/risk']
 
 export function Shell({ children }: { children: ReactNode }) {
+  const [unreadAlerts, setUnreadAlerts] = useState(0)
+
+  useEffect(() => {
+    let active = true
+    api.alerts()
+      .then((alerts) => {
+        if (!active) return
+        setUnreadAlerts(alerts.filter((a) => !a.is_read).length)
+      })
+      .catch(() => {})
+    return () => {
+      active = false
+    }
+  }, [])
+
   return (
     <div className="min-h-full flex">
       {/* Desktop sidebar */}
@@ -32,7 +53,7 @@ export function Shell({ children }: { children: ReactNode }) {
         <div className="px-6 py-6">
           <Brand />
         </div>
-        <nav className="px-3 flex-1 space-y-1">
+        <nav className="px-3 flex-1 space-y-1 overflow-y-auto">
           {NAV.map(({ to, label, icon: Icon }) => (
             <NavLink
               key={to}
@@ -46,7 +67,12 @@ export function Shell({ children }: { children: ReactNode }) {
               }
             >
               <Icon className="w-4 h-4" />
-              <span>{label}</span>
+              <span className="flex-1">{label}</span>
+              {to === '/alerts' && unreadAlerts > 0 && (
+                <span className="text-[10px] font-semibold px-1.5 py-0.5 rounded-full bg-accent-red text-white">
+                  {unreadAlerts}
+                </span>
+              )}
             </NavLink>
           ))}
         </nav>

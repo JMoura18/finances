@@ -1,4 +1,5 @@
 import { useEffect, useMemo, useState } from 'react'
+import { Link } from 'react-router-dom'
 import { api, Holding } from '../lib/api'
 import { fmt } from '../lib/format'
 import { Card, PageHeader, Disclaimer, Spinner } from '../components/ui'
@@ -45,25 +46,27 @@ export function HoldingsPage() {
       {/* Mobile cards */}
       <div className="lg:hidden space-y-2.5">
         {filtered.map((h) => (
-          <Card key={h.id} className="!p-3">
-            <div className="flex items-center justify-between">
-              <div className="min-w-0">
-                <div className="font-semibold">{h.symbol}</div>
-                <div className="text-[11px] text-zinc-500 truncate">{h.name}</div>
-              </div>
-              <div className="text-right">
-                <div className="font-semibold num">{fmt.cad(h.market_value_cad)}</div>
-                <div className={`text-[11px] num ${h.unrealized_pnl_cad >= 0 ? 'text-accent-green' : 'text-accent-red'}`}>
-                  {fmt.signed(h.unrealized_pnl_cad)}
+          <Link key={h.id} to={`/holdings/${h.id}`}>
+            <Card className="!p-3 glass-hover">
+              <div className="flex items-center justify-between">
+                <div className="min-w-0">
+                  <div className="font-semibold">{h.symbol}</div>
+                  <div className="text-[11px] text-zinc-500 truncate">{h.name}</div>
+                </div>
+                <div className="text-right">
+                  <div className="font-semibold num">{fmt.cad(h.market_value_cad)}</div>
+                  <div className={`text-[11px] num ${h.unrealized_pnl_cad >= 0 ? 'text-accent-green' : 'text-accent-red'}`}>
+                    {fmt.signed(h.unrealized_pnl_cad)}
+                  </div>
                 </div>
               </div>
-            </div>
-            <div className="mt-2 flex items-center gap-2 text-[11px] text-zinc-500">
-              <span className="pill-neutral">{h.asset_class}</span>
-              {h.sector && <span className="pill-neutral">{h.sector}</span>}
-              <span className="ml-auto num">{fmt.num(h.quantity)} sh · {fmt.pct(h.weight)}</span>
-            </div>
-          </Card>
+              <div className="mt-2 flex items-center gap-2 text-[11px] text-zinc-500">
+                <span className="pill-neutral">{h.asset_class}</span>
+                {h.sector && <span className="pill-neutral">{h.sector}</span>}
+                <span className="ml-auto num">{fmt.num(h.quantity)} sh · {fmt.pct(h.weight)}</span>
+              </div>
+            </Card>
+          </Link>
         ))}
       </div>
 
@@ -79,8 +82,9 @@ export function HoldingsPage() {
           <div className="col-span-1 text-right">P&amp;L</div>
         </div>
         {filtered.map((h, i) => (
-          <div
+          <Link
             key={h.id}
+            to={`/holdings/${h.id}`}
             className={`grid grid-cols-12 px-5 py-3 text-sm items-center ${
               i % 2 ? 'bg-white/[0.015]' : ''
             } hover:bg-white/[0.04] transition-colors`}
@@ -99,7 +103,7 @@ export function HoldingsPage() {
             <div className={`col-span-1 text-right num ${h.unrealized_pnl_cad >= 0 ? 'text-accent-green' : 'text-accent-red'}`}>
               {fmt.signed(h.unrealized_pnl_cad)}
             </div>
-          </div>
+          </Link>
         ))}
       </Card>
 

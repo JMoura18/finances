@@ -28,26 +28,54 @@ class ForecastResponse(BaseModel):
     narrative: dict[str, Any] | None = None
 
 
+class ScenariosRequest(BaseModel):
+    scenarios: list[ForecastRequest] = Field(min_length=1, max_length=6)
+
+
+class ScenariosResponse(BaseModel):
+    scenarios: list[ForecastResponse]
+
+
+def _build_inputs(p: ForecastRequest) -> ForecastInputs:
+    return ForecastInputs(
+        starting_balance_cad=p.starting_balance_cad,
+        annual_contribution_cad=p.annual_contribution_cad,
+        horizon_years=p.horizon_years,
+        equity_weight=p.equity_weight,
+        bond_weight=round(1.0 - p.equity_weight, 4),
+        target_cad=p.target_cad,
+        seed=p.seed,
+        n_simulations=p.n_simulations,
+    )
+
+
 @router.post("", response_model=ForecastResponse)
 async def create_forecast(payload: ForecastRequest) -> ForecastResponse:
-    inputs = ForecastInputs(
-        starting_balance_cad=payload.starting_balance_cad,
-        annual_contribution_cad=payload.annual_contribution_cad,
-        horizon_years=payload.horizon_years,
-        equity_weight=payload.equity_weight,
-        bond_weight=round(1.0 - payload.equity_weight, 4),
-        target_cad=payload.target_cad,
-        seed=payload.seed,
-        n_simulations=payload.n_simulations,
-    )
+    inputs = _build_inputs(payload)
     results = run_forecast(inputs)
-
     narrative = await run_forecaster_agent(
         results, payload.scenario_name, payload.horizon_years
     )
-
     return ForecastResponse(
         inputs=payload.model_dump(),
         results=serialize_results(results),
         narrative=narrative,
     )
+
+
+@router.post("/scenarios", response_model=ScenariosResponse)
+async def compare_scenarios(payload: ScenariosRequest) -> ScenariosResponse:
+    """Run multiple forecasts in one call. No agent narrative — it's per-scenario
+    on the dedicated endpoint and would multiply the LLM cost. The UI can
+    request narratives selectively.
+    """
+    out: list[ForecastResponse] = []
+    for s in payload.scenarios:
+        inputs = _build_inputs(s)
+        results = run_forecast(inputs)
+        out.append(ForecastResponse(
+            inputs=s.model_dump(),
+            results=serialize_results(results),
+            narrative=None,
+        ))
+    return ScenariosResponse(scenarios=out)

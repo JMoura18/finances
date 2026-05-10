@@ -3,6 +3,8 @@ from __future__ import annotations
 from fastapi import APIRouter
 from pydantic import BaseModel
 
+from app.auth import CurrentUserDep, CurrentUser
+
 router = APIRouter()
 
 
@@ -11,14 +13,15 @@ class MeResponse(BaseModel):
     email: str
     display_name: str | None = None
     province: str | None = None
+    is_dev: bool = False
 
 
 @router.get("/me", response_model=MeResponse)
-async def me() -> MeResponse:
-    # Stub. Replace with Firebase token verification + DB lookup.
+async def me(user: CurrentUser = CurrentUserDep) -> MeResponse:
     return MeResponse(
-        id="00000000-0000-0000-0000-000000000001",
-        email="jesse@example.com",
-        display_name="Jesse",
-        province="ON",
+        id=str(user.id),
+        email=user.email,
+        display_name="Jesse" if user.is_dev else None,
+        province="ON" if user.is_dev else None,
+        is_dev=user.is_dev,
     )

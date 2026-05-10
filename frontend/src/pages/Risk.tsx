@@ -12,6 +12,7 @@ import {
 import { api, RiskResponse } from '../lib/api'
 import { fmt } from '../lib/format'
 import { Card, PageHeader, Disclaimer, Spinner, Stat } from '../components/ui'
+import { SparkleIcon } from '../components/Icons'
 
 const SHOCK_LABELS: Record<string, string> = {
   covid_2020: 'COVID 2020',
@@ -21,9 +22,24 @@ const SHOCK_LABELS: Record<string, string> = {
 
 export function RiskPage() {
   const [risk, setRisk] = useState<RiskResponse | null>(null)
+  const [narrative, setNarrative] = useState<string | null>(null)
+  const [narrLoading, setNarrLoading] = useState(false)
+
   useEffect(() => {
     api.risk().then(setRisk).catch(console.error)
   }, [])
+
+  async function loadNarrative() {
+    setNarrLoading(true)
+    try {
+      const r = await api.riskNarrative()
+      setNarrative(r.output_text)
+    } catch (e) {
+      setNarrative(`Error: ${(e as Error).message}`)
+    } finally {
+      setNarrLoading(false)
+    }
+  }
 
   if (!risk) return <Spinner />
 
@@ -158,6 +174,35 @@ export function RiskPage() {
             </div>
           ))}
         </div>
+      </Card>
+
+      <Card className="mt-4">
+        <div className="flex items-center justify-between mb-3">
+          <div className="flex items-center gap-2">
+            <SparkleIcon className="w-4 h-4 text-gold-400" />
+            <div className="text-[11px] uppercase tracking-wider text-zinc-500">
+              Risk Analyst narrative
+            </div>
+          </div>
+          {!narrative && (
+            <button
+              onClick={loadNarrative}
+              disabled={narrLoading}
+              className="text-xs px-3 py-1.5 rounded-lg border border-white/10 hover:bg-white/5 disabled:opacity-50"
+            >
+              {narrLoading ? 'Generating…' : 'Generate'}
+            </button>
+          )}
+        </div>
+        {narrative ? (
+          <p className="text-sm text-zinc-300 leading-relaxed whitespace-pre-line">
+            {narrative}
+          </p>
+        ) : (
+          <p className="text-sm text-zinc-500">
+            Click Generate to interpret these numbers in plain language.
+          </p>
+        )}
       </Card>
 
       <Disclaimer />

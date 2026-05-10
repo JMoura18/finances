@@ -1,5 +1,8 @@
 from __future__ import annotations
 
+import logging
+from contextlib import asynccontextmanager
+
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 
@@ -7,10 +10,13 @@ from app.config import get_settings
 from app.routers import (
     accounts,
     agents,
+    alerts,
+    calibration,
     forecast,
     holdings,
     rebalance,
     risk,
+    snaptrade,
     tax,
     transactions,
     users,
@@ -22,10 +28,24 @@ DISCLAIMER = (
     "investment decisions."
 )
 
+log = logging.getLogger(__name__)
+
+
+@asynccontextmanager
+async def lifespan(_: FastAPI):
+    settings = get_settings()
+    if settings.environment == "dev":
+        try:
+            from scripts.seed_dev import seed
+            await seed()
+        except Exception as e:  # noqa: BLE001
+            log.warning("dev seed skipped: %s", e)
+    yield
+
 
 def create_app() -> FastAPI:
     settings = get_settings()
-    app = FastAPI(title="Cofre API", version="0.1.0")
+    app = FastAPI(title="Cofre API", version="0.1.0", lifespan=lifespan)
 
     app.add_middleware(
         CORSMiddleware,
@@ -37,11 +57,7 @@ def create_app() -> FastAPI:
 
     @app.get("/")
     async def root() -> dict[str, str]:
-        return {
-            "name": "Cofre API",
-            "version": "0.1.0",
-            "disclaimer": DISCLAIMER,
-        }
+        return {"name": "Cofre API", "version": "0.1.0", "disclaimer": DISCLAIMER}
 
     @app.get("/healthz")
     async def healthz() -> dict[str, str]:
@@ -56,6 +72,9 @@ def create_app() -> FastAPI:
     app.include_router(tax.router, prefix="/api/tax", tags=["tax"])
     app.include_router(rebalance.router, prefix="/api/rebalance", tags=["rebalance"])
     app.include_router(agents.router, prefix="/api/agents", tags=["agents"])
+    app.include_router(alerts.router, prefix="/api/alerts", tags=["alerts"])
+    app.include_router(snaptrade.router, prefix="/api/snaptrade", tags=["snaptrade"])
+    app.include_router(calibration.router, prefix="/api/calibration", tags=["calibration"])
 
     return app
 
