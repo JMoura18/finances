@@ -1,0 +1,64 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+@layer base {
+  :root {
+    color-scheme: dark;
+  }
+
+  html, body, #root {
+    height: 100%;
+  }
+
+  body {
+    @apply bg-ink-950 text-zinc-100 font-sans antialiased;
+    background-image:
+      radial-gradient(1200px 600px at 0% -10%, rgba(122,163,255,0.10), transparent 60%),
+      radial-gradient(900px 500px at 100% 0%, rgba(212,181,119,0.08), transparent 55%);
+    background-attachment: fixed;
+  }
+
+  /* Better tap targets on mobile */
+  button, a {
+    -webkit-tap-highlight-color: transparent;
+  }
+}
+
+@layer components {
+  .glass {
+    @apply bg-ink-800/60 backdrop-blur-xl border border-white/5 rounded-2xl;
+  }
+
+  .glass-hover {
+    @apply transition-colors hover:bg-ink-700/60;
+  }
+
+  .num {
+    @apply font-mono tabular-nums;
+  }
+
+  .pill {
+    @apply inline-flex items-center px-2 py-0.5 rounded-full text-[11px] font-medium border;
+  }
+
+  .pill-good {
+    @apply pill border-accent-green/30 text-accent-green bg-accent-green/10;
+  }
+
+  .pill-bad {
+    @apply pill border-accent-red/30 text-accent-red bg-accent-red/10;
+  }
+
+  .pill-warn {
+    @apply pill border-accent-amber/30 text-accent-amber bg-accent-amber/10;
+  }
+
+  .pill-neutral {
+    @apply pill border-white/10 text-zinc-400 bg-white/5;
+  }
+}
+
+/* Hide scrollbars on chip rows but keep scrolling */
+.no-scrollbar::-webkit-scrollbar { display: none; }
+.no-scrollbar { -ms-overflow-style: none; scrollbar-width: none; }
